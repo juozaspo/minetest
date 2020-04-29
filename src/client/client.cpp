@@ -1787,18 +1787,89 @@ void Client::makeScreenshot()
 	if (fs::IsPathAbsolute(g_settings->get("screenshot_path")))
 		screenshot_dir = g_settings->get("screenshot_path");
 	else
-		screenshot_dir = porting::path_user + DIR_DELIM + g_settings->get("screenshot_path");
+		screenshot_dir = porting::path_user + std::string(DIR_DELIM) + g_settings->get("screenshot_path");
 
-	std::string filename_base = screenshot_dir
-			+ DIR_DELIM
-			+ std::string("screenshot_")
-			+ std::string(timetstamp_c);
+	// Using Irrlicht methods since those defined in filesys.cpp are
+	// not reliable, they do not return correct absolute path in some
+	// path values such as the root or path with non-existing folders
+	io::IFileSystem *irrfs = m_rendering_engine->get_filesystem();
+	io::path path = irrfs->getAbsolutePath(screenshot_dir.c_str());
+	std::string screenshot_dir_abs = std::string(path.c_str());
+
+	std::string dir_root = std::string(DIR_DELIM);
+#ifdef _WIN32
+	// Set correct directory root on Windows
+	if (screenshot_dir_abs.find(":") == 1) {
+		dir_root = screenshot_dir_abs.substr(0,2) + dir_root;
+	}
+
+	// Replace wrong directory delimiter in path returned by irrlicht functions
+	std::replace(screenshot_dir_abs.begin(), screenshot_dir_abs.end(), '/', DIR_DELIM_CHAR);
+#endif //_WIN32
+
+	// Remove trailing DIR_DELIM from the screenshot absolute path
+	std::size_t pos = screenshot_dir_abs.rfind(std::string(DIR_DELIM));
+	if (screenshot_dir_abs.length() > dir_root.length() && pos == screenshot_dir_abs.length()-1) {
+		screenshot_dir_abs = screenshot_dir_abs.substr(0, pos);
+	}
+
+	if (screenshot_dir_abs != dir_root) {
+		bool mtpath_done = false, screenpath_done = false, levels_diverged=false;
+		int mtpath_levels = 0, common_levels = 0;
+		std::size_t mtpath_pos, screenpath_pos;
+		std::string mtpath_str = fs::AbsolutePath(porting::path_user), screenpath_str = screenshot_dir_abs;
+		std::string mtpath_name, screenpath_name, common_path;
+		do {
+			if (!mtpath_done)
+				mtpath_levels++;
+			mtpath_pos = mtpath_str.find(std::string(DIR_DELIM));
+			if (mtpath_pos != std::string::npos) {
+				mtpath_name = mtpath_str.substr(0, mtpath_pos);
+				mtpath_str.erase(0, mtpath_pos + 1);
+			} else if (!mtpath_done) {
+				mtpath_name = mtpath_str;
+				mtpath_done = true;
+			}
+			screenpath_pos = screenpath_str.find(std::string(DIR_DELIM));
+			if (screenpath_pos != std::string::npos) {
+				screenpath_name = screenpath_str.substr(0, screenpath_pos);
+				screenpath_str.erase(0, screenpath_pos + std::string(DIR_DELIM).length());
+			} else if (!screenpath_done) {
+				screenpath_name = screenpath_str;
+				screenpath_done = true;
+			}
+			if (!levels_diverged && mtpath_name == screenpath_name) {
+				common_path += ((common_levels > 0) ? std::string(DIR_DELIM) : "")
+					+ mtpath_name;
+				common_levels++;
+			} else if (!levels_diverged) {
+				levels_diverged = true;
+			}
+		} while (mtpath_pos != std::string::npos || screenpath_pos != std::string::npos);
+		int level_diff = mtpath_levels - common_levels;
+		if (fs::IsPathAbsolute(g_settings->get("screenshot_path")) || level_diff >= 4) {
+			screenshot_dir = screenshot_dir_abs;
+		} else {
+			screenshot_dir = "";
+			if (level_diff != 0)
+				for (int i = 0; i < level_diff; i++)
+					screenshot_dir += ((i > 0 && i < level_diff) ? std::string(DIR_DELIM) : "") + "..";
+			std::size_t pos = common_path.length()
+				+ ((screenshot_dir.length() == 0 && common_path.length() < screenshot_dir_abs.length())?1:0);
+			screenshot_dir += screenshot_dir_abs.substr(pos, screenshot_dir_abs.length());
+		}
+	} else {
+		screenshot_dir = screenshot_dir_abs;
+	}
+
+	std::string filename_base = std::string("screenshot_")
+		+ std::string(timetstamp_c);
 	std::string filename_ext = "." + g_settings->get("screenshot_format");
-	std::string filename;
+	std::string basename, filename, filename_abs;
 
 	// Create the directory if it doesn't already exist.
 	// Otherwise, saving the screenshot would fail.
-	fs::CreateDir(screenshot_dir);
+	fs::CreateDir(screenshot_dir_abs);
 
 	u32 quality = (u32)g_settings->getS32("screenshot_quality");
 	quality = MYMIN(MYMAX(quality, 0), 100) / 100.0 * 255;
@@ -1807,8 +1878,16 @@ void Client::makeScreenshot()
 	unsigned serial = 0;
 
 	while (serial < SCREENSHOT_MAX_SERIAL_TRIES) {
-		filename = filename_base + (serial > 0 ? ("_" + itos(serial)) : "") + filename_ext;
-		std::ifstream tmp(filename.c_str());
+		basename = filename_base
+			+ (serial > 0 ? ("_" + itos(serial)) : "")
+			+ filename_ext;
+		filename = screenshot_dir
+			+ ((screenshot_dir != "") ? std::string(DIR_DELIM) : "")
+			+ basename;
+		filename_abs = screenshot_dir_abs
+			+ std::string(DIR_DELIM)
+			+ basename;
+		std::ifstream tmp(filename_abs.c_str());
 		if (!tmp.good())
 			break;	// File did not apparently exist, we'll go with it
 		serial++;
@@ -1824,7 +1903,7 @@ void Client::makeScreenshot()
 			raw_image->copyTo(image);
 
 			std::ostringstream sstr;
-			if (driver->writeImageToFile(image, filename.c_str(), quality)) {
+			if (driver->writeImageToFile(image, filename_abs.c_str(), quality)) {
 				sstr << "Saved screenshot to '" << filename << "'";
 			} else {
 				sstr << "Failed to save screenshot '" << filename << "'";
