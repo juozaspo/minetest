@@ -127,6 +127,9 @@ std::string AbsolutePath(const std::string &path);
 // extra delimiter if one already exist in the first parameter of the function
 std::string JoinPaths(const std::string &path1, const std::string &path2);
 
+// Returns drive root (top level) directory from supplied path value
+std::string GetRootDir(const std::string &path);
+
 // Returns the filename from a path or the entire path if no directory
 // delimiter is found.
 const char *GetFilenameFromPath(const char *path);

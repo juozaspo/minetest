@@ -649,20 +649,34 @@ std::string RemoveRelativePathComponents(std::string path)
 	pos = path.size();
 	while (pos != 0 && IsDirDelimiter(path[pos-1]))
 		pos--;
-	return path.substr(0, pos);
+	if (path != GetRootDir(path))
+		return path.substr(0, pos);
+	else
+		return path;
 }
 
 std::string AbsolutePath(const std::string &path)
 {
 #ifdef _WIN32
 	char *abs_path = _fullpath(NULL, path.c_str(), MAX_PATH);
-#else
-	char *abs_path = realpath(path.c_str(), NULL);
-#endif
 	if (!abs_path) return "";
 	std::string abs_path_str(abs_path);
 	free(abs_path);
 	return abs_path_str;
+#else
+	if (IsPathAbsolute(path)) {
+		return RemoveRelativePathComponents(path);
+	} else {
+		char buf[BUFSIZ];
+		if(!porting::getCurrentWorkingDir(buf, sizeof(buf))) {
+			errorstream << "fs::AbsolutePath(): Unable to get the current working dir"
+				<< std::endl;
+			return RemoveRelativePathComponents(path);
+		}
+		return RemoveRelativePathComponents(std::string(buf)
+				+ std::string(DIR_DELIM) + path);
+	}
+#endif
 }
 
 std::string JoinPaths(const std::string &path1, const std::string &path2)
@@ -675,6 +689,15 @@ std::string JoinPaths(const std::string &path1, const std::string &path2)
 	return joined_path;
 }
 
+std::string GetRootDir(const std::string &path)
+{
+#ifdef _WIN32
+	if (path.find(":") == 1) {
+		return path.substr(0,2) + std::string(DIR_DELIM);
+	}
+#endif //_WIN32
+	return std::string(DIR_DELIM);
+}
 
 const char *GetFilenameFromPath(const char *path)
 {

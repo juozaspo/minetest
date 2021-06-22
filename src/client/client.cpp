@@ -1794,14 +1794,8 @@ void Client::makeScreenshot()
 	infostream << "screenshot_dir: " << screenshot_dir << std::endl;
 	infostream << "screenshot_dir_abs: " << screenshot_dir_abs << std::endl;
 
-	std::string dir_root = std::string(DIR_DELIM);
-#ifdef _WIN32
-	// Set correct directory root on Windows
-	if (screenshot_dir_abs.find(":") == 1) {
-		dir_root = screenshot_dir_abs.substr(0,2) + dir_root;
-	}
+	std::string dir_root = fs::GetRootDir(screenshot_dir_abs);
 	infostream << "dir_root: " << dir_root << std::endl;
-#endif //_WIN32
 
 	// Remove trailing DIR_DELIM from the screenshot absolute path
 	std::size_t pos = screenshot_dir_abs.rfind(std::string(DIR_DELIM));
