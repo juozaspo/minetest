@@ -1807,6 +1807,7 @@ void Client::makeScreenshot()
 	std::size_t pos = screenshot_dir_abs.rfind(std::string(DIR_DELIM));
 	if (screenshot_dir_abs.length() > dir_root.length() && pos == screenshot_dir_abs.length()-1) {
 		screenshot_dir_abs = screenshot_dir_abs.substr(0, pos);
+		infostream << "screenshot_dir_abs (updated): " << screenshot_dir_abs << std::endl;
 	}
 
 	if (screenshot_dir_abs != dir_root) {
@@ -1877,12 +1878,8 @@ void Client::makeScreenshot()
 		basename = filename_base
 			+ (serial > 0 ? ("_" + itos(serial)) : "")
 			+ filename_ext;
-		filename = screenshot_dir
-			+ ((screenshot_dir != "") ? std::string(DIR_DELIM) : "")
-			+ basename;
-		filename_abs = screenshot_dir_abs
-			+ std::string(DIR_DELIM)
-			+ basename;
+		filename = fs::JoinPaths(screenshot_dir, basename);
+		filename_abs = fs::JoinPaths(screenshot_dir_abs, basename);
 		std::ifstream tmp(filename_abs.c_str());
 		if (!tmp.good())
 			break;	// File did not apparently exist, we'll go with it

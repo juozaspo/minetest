@@ -665,6 +665,17 @@ std::string AbsolutePath(const std::string &path)
 	return abs_path_str;
 }
 
+std::string JoinPaths(const std::string &path1, const std::string &path2)
+{
+	if (path1 == "") return path2;
+	std::size_t pos = path1.rfind(std::string(DIR_DELIM));
+	std::string joined_path = path1
+	+ ((pos != path1.length()-1) ? std::string(DIR_DELIM) : "")
+	+ path2;
+	return joined_path;
+}
+
+
 const char *GetFilenameFromPath(const char *path)
 {
 	const char *filename = strrchr(path, DIR_DELIM_CHAR);

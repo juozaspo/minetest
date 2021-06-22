@@ -123,6 +123,10 @@ std::string RemoveRelativePathComponents(std::string path);
 // components and symlinks removed.  Returns "" on error.
 std::string AbsolutePath(const std::string &path);
 
+// Returns joined whole path constructed from input parameters, not adding
+// extra delimiter if one already exist in the first parameter of the function
+std::string JoinPaths(const std::string &path1, const std::string &path2);
+
 // Returns the filename from a path or the entire path if no directory
 // delimiter is found.
 const char *GetFilenameFromPath(const char *path);
