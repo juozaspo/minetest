@@ -1797,13 +1797,6 @@ void Client::makeScreenshot()
 	std::string dir_root = fs::GetRootDir(screenshot_dir_abs);
 	infostream << "dir_root: " << dir_root << std::endl;
 
-	// Remove trailing DIR_DELIM from the screenshot absolute path
-	std::size_t pos = screenshot_dir_abs.rfind(std::string(DIR_DELIM));
-	if (screenshot_dir_abs.length() > dir_root.length() && pos == screenshot_dir_abs.length()-1) {
-		screenshot_dir_abs = screenshot_dir_abs.substr(0, pos);
-		infostream << "screenshot_dir_abs (updated): " << screenshot_dir_abs << std::endl;
-	}
-
 	if (screenshot_dir_abs != dir_root) {
 		bool mtpath_done = false, screenpath_done = false, levels_diverged=false;
 		int mtpath_levels = 0, common_levels = 0;
