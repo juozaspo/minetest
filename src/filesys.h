@@ -127,11 +127,11 @@ std::string AbsolutePath(const std::string &path);
 // extra delimiter if one already exist in the first parameter of the function
 std::string JoinPaths(const std::string &path1, const std::string &path2);
 
-// Splits last component from supplied path, stores result in variables
+// Splits first component from supplied path, stores result in variables
 // supplied as arguments, path is path variable being processed, component is
 // current name removed from path. Returns true if there is no more components
 // after execution, otherwise returns false
-bool SplitLastComponentFromPath (std::string &path, std::string &component);
+bool SplitComponentFromPath (std::string &path, std::string &component);
 
 // Returns drive root (top level) directory from supplied path value
 std::string GetRootDir(const std::string &path);

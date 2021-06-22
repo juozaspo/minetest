@@ -1805,8 +1805,8 @@ void Client::makeScreenshot()
 		do {
 			if (!mtpath_done)
 				mtpath_levels++;
-			mtpath_done = fs::SplitLastComponentFromPath (mtpath_str, mtpath_name);
-			screenpath_done = fs::SplitLastComponentFromPath (screenpath_str, screenpath_name);
+			mtpath_done = fs::SplitComponentFromPath (mtpath_str, mtpath_name);
+			screenpath_done = fs::SplitComponentFromPath (screenpath_str, screenpath_name);
 			if (!levels_diverged && mtpath_name == screenpath_name) {
 				common_path += ((common_levels > 0) ? std::string(DIR_DELIM) : "")
 					+ mtpath_name;

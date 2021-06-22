@@ -689,7 +689,7 @@ std::string JoinPaths(const std::string &path1, const std::string &path2)
 	return joined_path;
 }
 
-bool SplitLastComponentFromPath (std::string &path, std::string &component) {
+bool SplitComponentFromPath (std::string &path, std::string &component) {
 	std::size_t pos = path.find(std::string(DIR_DELIM));
 	if (pos != std::string::npos) {
 		component = path.substr(0, pos);
