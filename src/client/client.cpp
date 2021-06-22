@@ -1789,12 +1789,10 @@ void Client::makeScreenshot()
 	else
 		screenshot_dir = porting::path_user + std::string(DIR_DELIM) + g_settings->get("screenshot_path");
 
-	// Using Irrlicht methods since those defined in filesys.cpp are
-	// not reliable, they do not return correct absolute path in some
-	// path values such as the root or path with non-existing folders
-	io::IFileSystem *irrfs = m_rendering_engine->get_filesystem();
-	io::path path = irrfs->getAbsolutePath(screenshot_dir.c_str());
-	std::string screenshot_dir_abs = std::string(path.c_str());
+	//Get absolute path
+	std::string screenshot_dir_abs = fs::AbsolutePath(screenshot_dir);
+	infostream << "screenshot_dir: " << screenshot_dir << std::endl;
+	infostream << "screenshot_dir_abs: " << screenshot_dir_abs << std::endl;
 
 	std::string dir_root = std::string(DIR_DELIM);
 #ifdef _WIN32
