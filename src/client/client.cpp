@@ -1800,9 +1800,7 @@ void Client::makeScreenshot()
 	if (screenshot_dir_abs.find(":") == 1) {
 		dir_root = screenshot_dir_abs.substr(0,2) + dir_root;
 	}
-
-	// Replace wrong directory delimiter in path returned by irrlicht functions
-	std::replace(screenshot_dir_abs.begin(), screenshot_dir_abs.end(), '/', DIR_DELIM_CHAR);
+	infostream << "dir_root: " << dir_root << std::endl;
 #endif //_WIN32
 
 	// Remove trailing DIR_DELIM from the screenshot absolute path
