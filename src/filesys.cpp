@@ -689,6 +689,18 @@ std::string JoinPaths(const std::string &path1, const std::string &path2)
 	return joined_path;
 }
 
+bool SplitLastComponentFromPath (std::string &path, std::string &component) {
+	std::size_t pos = path.find(std::string(DIR_DELIM));
+	if (pos != std::string::npos) {
+		component = path.substr(0, pos);
+		path.erase(0, pos + 1);
+		return false;
+	} else {
+		component = path;
+		return true;
+	}
+}
+
 std::string GetRootDir(const std::string &path)
 {
 #ifdef _WIN32

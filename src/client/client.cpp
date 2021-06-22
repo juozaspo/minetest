@@ -1800,28 +1800,13 @@ void Client::makeScreenshot()
 	if (screenshot_dir_abs != dir_root) {
 		bool mtpath_done = false, screenpath_done = false, levels_diverged=false;
 		int mtpath_levels = 0, common_levels = 0;
-		std::size_t mtpath_pos, screenpath_pos;
 		std::string mtpath_str = fs::AbsolutePath(porting::path_user), screenpath_str = screenshot_dir_abs;
 		std::string mtpath_name, screenpath_name, common_path;
 		do {
 			if (!mtpath_done)
 				mtpath_levels++;
-			mtpath_pos = mtpath_str.find(std::string(DIR_DELIM));
-			if (mtpath_pos != std::string::npos) {
-				mtpath_name = mtpath_str.substr(0, mtpath_pos);
-				mtpath_str.erase(0, mtpath_pos + 1);
-			} else if (!mtpath_done) {
-				mtpath_name = mtpath_str;
-				mtpath_done = true;
-			}
-			screenpath_pos = screenpath_str.find(std::string(DIR_DELIM));
-			if (screenpath_pos != std::string::npos) {
-				screenpath_name = screenpath_str.substr(0, screenpath_pos);
-				screenpath_str.erase(0, screenpath_pos + std::string(DIR_DELIM).length());
-			} else if (!screenpath_done) {
-				screenpath_name = screenpath_str;
-				screenpath_done = true;
-			}
+			mtpath_done = fs::SplitLastComponentFromPath (mtpath_str, mtpath_name);
+			screenpath_done = fs::SplitLastComponentFromPath (screenpath_str, screenpath_name);
 			if (!levels_diverged && mtpath_name == screenpath_name) {
 				common_path += ((common_levels > 0) ? std::string(DIR_DELIM) : "")
 					+ mtpath_name;
@@ -1829,7 +1814,7 @@ void Client::makeScreenshot()
 			} else if (!levels_diverged) {
 				levels_diverged = true;
 			}
-		} while (mtpath_pos != std::string::npos || screenpath_pos != std::string::npos);
+		} while (!mtpath_done || !screenpath_done);
 		int level_diff = mtpath_levels - common_levels;
 		if (fs::IsPathAbsolute(g_settings->get("screenshot_path")) || level_diff >= 4) {
 			screenshot_dir = screenshot_dir_abs;
